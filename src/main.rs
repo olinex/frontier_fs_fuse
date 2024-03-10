@@ -23,6 +23,8 @@ enum RawDeviceErrorCode {
     Locked = -1,
 }
 
+/// Impl std file as frontier file system's block device,
+/// so we can read/write data to file as block device
 struct BlockFile(Mutex<File>);
 impl BlockDevice for BlockFile {
     fn read_block(&self, id: usize, buffer: &mut [u8]) -> Option<isize> {
@@ -54,6 +56,7 @@ impl BlockDevice for BlockFile {
     }
 }
 
+/// Define the optional parameters for the image file build command
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -70,6 +73,7 @@ struct Args {
     check: bool,
 }
 
+/// Build the image file
 fn build(args: Args) {
     assert!(args.source_dir.exists() && args.source_dir.is_dir());
     assert!(args.target_path.parent().is_some_and(|dir| dir.is_dir()));

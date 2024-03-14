@@ -94,7 +94,7 @@ fn build(args: Args) {
         .collect();
     let fs = FS::initialize(InitMode::TotalBlocks(MAX_IMAGE_BLOCKS), IABC, &tracker).unwrap();
     let root_inode = fs.root_inode();
-    let flags = FileFlags::VALID;
+    let flags = FileFlags::RWX;
     let mut buffer = [0; BLOCK_BYTE_SIZE];
     for file_path in file_paths.iter() {
         let name = file_path.file_name().unwrap().to_str().unwrap();

@@ -17,7 +17,6 @@ use std::sync::Mutex;
 // use self mods
 
 const IABC: u8 = 4;
-const MAX_IMAGE_BLOCKS: u32 = 2048;
 
 enum RawDeviceErrorCode {
     Locked = -1,
@@ -92,11 +91,21 @@ fn build(args: Args) {
         .map(|entry| entry.unwrap().path())
         .filter(|path| path.is_file())
         .collect();
-    let fs = FS::initialize(InitMode::TotalBlocks(MAX_IMAGE_BLOCKS), IABC, &tracker).unwrap();
+    let mut total_byte_size = 0;
+    for file_path in file_paths.iter() {
+        let file = OpenOptions::new().read(true).open(file_path).unwrap();
+        let new_byte_size = file.metadata().unwrap().len();
+        total_byte_size += new_byte_size;
+    }
+    let fs = FS::initialize(
+        InitMode::TotalByteSize(total_byte_size * 10),
+        IABC,
+        &tracker,
+    )
+    .unwrap();
     let root_inode = fs.root_inode();
     let flags = FileFlags::RWX;
     let mut buffer = [0; BLOCK_BYTE_SIZE];
-    let mut total_byte_size = 0;
     for file_path in file_paths.iter() {
         let name = file_path.file_name().unwrap().to_str().unwrap();
         let mut file = OpenOptions::new().read(true).open(file_path).unwrap();
@@ -117,7 +126,6 @@ fn build(args: Args) {
             }
         }
         assert_eq!(new_byte_size, start_offset);
-        total_byte_size += new_byte_size;
         println!(
             "loaded {} file from {}({} bytes)",
             name,
